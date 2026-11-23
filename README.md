@@ -1,76 +1,59 @@
 # Rockfox
 
-Rockfox is a Linux browser built from [Zen Browser](https://github.com/zen-browser/desktop) with the privacy hardening of [LibreWolf](https://librewolf.net) added on top. The idea is Zen's design without Zen's phoning home, and a hardened browser that is still pleasant to use every day.
+**LibreWolf's privacy with Zen's design.**
 
-> **Status: early pre-release.** The first build compiles and is signed, but Rockfox has had no independent security review and several things are not tested yet (see [Not tested yet](#not-tested-yet)). Do not rely on it where your safety depends on it.
+Rockfox is a Linux browser that puts LibreWolf's privacy hardening inside Zen Browser's beautiful, minimal interface. Vertical tabs, Spaces and split view on the outside, a hardened, telemetry-free build on the inside.
 
-## What it is
+> Early pre-release · Linux x86_64 · see [Good to know](#good-to-know) for what is not tested yet
 
-- A soft fork. This repository holds a small set of patches, a preference layer and the build scripts, not Zen's source. A build clones Zen at a pinned tag, applies everything and compiles it.
-- Linux x86_64 only.
-- Built by GitHub Actions from this repository, and the workflows are public. Each release says which Zen, Firefox and LibreWolf versions it is based on; they are pinned in [`upstream.json`](upstream.json).
+## Why you'll like it
 
-## What changes compared to Zen
+- **Zen's design.** Vertical tabs, Spaces, split view, Glance and a clean, minimal look.
+- **LibreWolf's privacy.** 340 privacy and hardening settings applied, plus 6 patches to Firefox's own source code.
+- **Telemetry off at the source.** It is turned off when the browser is compiled, not just in the settings.
+- **Tracking blocked.** Strict content blocking and fingerprinting protection, with no prefetching or speculative connections behind your back.
+- **Made for every day.** WebGL is on, the password manager works, your tabs and logins survive a restart, and the Fire button wipes everything in one click when you want a clean slate.
+- **Updates you can trust.** They come only from this repository's releases and are signed with the project's own key.
+- **Built in the open.** Every build is made by public GitHub Actions workflows from the code in this repository.
 
-- The mod store and Share are switched off.
-- Donation links and prompts are removed.
-- Updates come from this repository's releases and are signed with the project's own key. Zen's update server and key are not used.
-- The build uses the same hardening flags as LibreWolf, and the default browser agent and `pingsender` (a telemetry helper) are not built.
-- Telemetry and data reporting are also compiled out, with a LibreWolf patch, on top of being switched off in the preferences.
-- DRM (encrypted media) is off by default.
-- Syncing Spaces is on by default. It only does anything if you sign in to a Firefox account.
+## By the numbers
 
-## What comes from LibreWolf
+| | |
+| --- | --- |
+| **340** | LibreWolf privacy and hardening settings applied |
+| **13** | patches applied: 6 from LibreWolf to Firefox's source, 7 of our own on top of Zen |
 
-- 340 of LibreWolf's preferences are applied. Another 75 are skipped because Zen or Rockfox already sets them, or because they only make sense for LibreWolf's own packaging. Among the values in effect:
-  - strict content blocking;
-  - Safe Browsing off;
-  - DNS over HTTPS off;
-  - no captive portal or connectivity checks;
-  - no search engine or region updates;
-  - the OpenH264 and Widevine plug-ins off, and their update checks;
-  - no link prefetching or speculative connections;
-  - location lookups go to [BeaconDB](https://beacondb.net), not to Google.
-- Six LibreWolf patches to Firefox's source, in [`patches/firefox`](patches/firefox): telemetry compiled out, `pingsender` removed, Remote Settings fetches restricted, the OpenAI backend removed, the alt-svc cache cleared at the end of a session, and Widevine updates allowed once you enable it from its activation popup.
+## Privacy, in practice
 
-## Where Rockfox differs from LibreWolf
-
-These are choices for daily use, set in [`overrides.yaml`](overlay/prefs/rockfox/overrides.yaml).
-
-- Resist Fingerprinting is off and Firefox's lighter fingerprinting protection is on. Full Resist Fingerprinting forces a light theme, UTC time and a fixed window size, and breaks many sites. The price is that your browser looks less uniform than a default LibreWolf.
-- WebGL is enabled.
-- History, cookies and sessions are kept between restarts. The built-in Fire button, Firefox's "delete all data", is enabled for wiping everything on demand.
-- The password manager is on.
-- Firefox accounts are on, but only Spaces are synced. Bookmarks, history, passwords, tabs, add-ons, addresses, cards and settings are not.
-
-## Trade-offs
-
-- With Safe Browsing off, you get no warning for known phishing or malware sites. That keeps URL checks away from Google, and it also removes a safety net.
-- If you sign in to sync Spaces, your browser talks to Mozilla's account servers. Spaces sync is experimental in Zen.
-- Anything inherited from Zen or Firefox that is not listed here is unchanged, and it has not all been reviewed.
-
-## Not tested yet
-
-- A measured list of the network requests a fresh profile makes. Until there is one, do not assume there are none.
-- Automatic updates from one release to the next.
-- Playing DRM-protected video such as Netflix.
-- Spaces sync.
-
-Also missing: importing a profile from Zen or Firefox, a bundled ad blocker such as uBlock Origin, and aarch64. The build is made without profile-guided optimisation, and some interface strings may still say "Zen".
+- Strict tracking and content blocking out of the box.
+- No Safe Browsing lookups, so the sites you visit are not checked against Google's lists.
+- No captive portal or connectivity checks, and no search engine or region updates.
+- No link prefetching or speculative connections.
+- Location lookups go to [BeaconDB](https://beacondb.net), not to Google.
+- OpenH264 and Widevine are off until you want them.
+- A lighter fingerprinting protection that keeps websites working.
 
 ## Install
 
 There is no release yet. When there is one, download the `.tar.xz` from [Releases](https://github.com/Rockfoxproject/rockfox/releases), extract it and run `rockfox`. A Flatpak is planned.
 
-## Building and contributing
+## Good to know
 
-- [`docs/maintaining.md`](docs/maintaining.md) explains how a build works, the signing key and how to run your own.
+- Rockfox is an early pre-release and has had no independent security review.
+- Safe Browsing is off, as in LibreWolf. That keeps your browsing away from Google, and it also means no warning for known phishing and malware sites.
+- Syncing Spaces is the only sync. It uses a Firefox account, so your browser talks to Mozilla's servers if you sign in.
+- Not tested yet: a measured list of the network requests a fresh profile makes, automatic updates from one release to the next, DRM video such as Netflix, and Spaces sync.
+- Not there yet: importing a profile from Zen or Firefox, a bundled ad blocker and aarch64. Some interface text may still say "Zen".
+
+## Build it, report a problem
+
+- [`docs/maintaining.md`](docs/maintaining.md) explains how a build works and how to run your own.
 - Report a security problem as described in [`SECURITY.md`](SECURITY.md), not in a public issue.
 - Other bugs and questions go in the [issues](https://github.com/Rockfoxproject/rockfox/issues).
 
 ## Credits and licence
 
-Rockfox stands on the work of [Zen Browser](https://github.com/zen-browser/desktop), [LibreWolf](https://librewolf.net) and Mozilla's Firefox. The six patches in `patches/firefox` and `vendor/librewolf/librewolf.cfg` come from LibreWolf.
+Rockfox exists thanks to the [Zen Browser](https://github.com/zen-browser/desktop) and [LibreWolf](https://librewolf.net) teams and to Mozilla's Firefox. The six Firefox patches and the settings list in `vendor/librewolf` come from LibreWolf.
 
 Rockfox is an independent project. It is not affiliated with or endorsed by Zen Browser, LibreWolf or Mozilla. Firefox is a trademark of the Mozilla Foundation.
 
