@@ -39,6 +39,11 @@ jobs:
         with:
           persist-credentials: false
 
+      - name: Set up git
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
       - name: Prepare the source tree
         run: bash scripts/prepare.sh
 
@@ -57,6 +62,7 @@ jobs:
         run: |
           channel=$(sed -n 's/^channel *= *"\(.*\)"/\1/p' rust-toolchain.toml)
           rustup toolchain install "$channel" --profile minimal --target x86_64-unknown-linux-gnu
+          rustup default "$channel"
 
       - name: Set the version
         run: echo "VERSION=$(jq -r '.zen.tag + "-rf" + (.revision | tostring)' upstream.json)" >> "$GITHUB_ENV"
@@ -101,6 +107,12 @@ jobs:
             echo "::warning::No signing key is set up, so this build uses a throwaway key and cannot be published"
             bash scripts/mar_sign.sh -g
           fi
+
+      - name: Show build resources
+        run: |
+          nproc
+          free -h
+          df -h /
 
       - name: Build
         working-directory: zen
