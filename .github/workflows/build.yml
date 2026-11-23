@@ -1,0 +1,166 @@
+name: Build
+
+on:
+  workflow_dispatch:
+    inputs:
+      publish:
+        description: Publish a release when the build succeeds
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+
+concurrency:
+  group: build
+  cancel-in-progress: false
+
+jobs:
+  linux:
+    runs-on: ${{ vars.ROCKFOX_RUNNER || 'ubuntu-24.04' }}
+    timeout-minutes: 355
+    permissions:
+      contents: write
+    env:
+      ROCKFOX_REPO: ${{ github.repository }}
+      SURFER_PLATFORM: linux
+      SURFER_COMPAT: x86_64
+      ZEN_GA_DISABLE_PGO: "1"
+      ZEN_RELEASE_BRANCH: release
+    steps:
+      - name: Free disk space
+        uses: jlumbroso/free-disk-space@54081f138730dfa15788a46383842cd2f914a1be # v1.3.1
+        with:
+          tool-cache: false
+          large-packages: false
+
+      - name: Checkout
+        uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+        with:
+          persist-credentials: false
+
+      - name: Prepare the source tree
+        run: bash scripts/prepare.sh
+
+      - name: Set up Node.js
+        uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444 # v5
+        with:
+          node-version-file: zen/.nvmrc
+
+      - name: Install system dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y python3 python3-pip dos2unix yasm nasm build-essential libgtk2.0-dev libpython3-dev m4 uuid libasound2-dev libcurl4-openssl-dev libdbus-1-dev libdrm-dev libdbus-glib-1-dev libgtk-3-dev libpulse-dev libx11-xcb-dev libxt-dev xvfb lld llvm libnss3-tools
+
+      - name: Install Rust
+        working-directory: zen
+        run: |
+          channel=$(sed -n 's/^channel *= *"\(.*\)"/\1/p' rust-toolchain.toml)
+          rustup toolchain install "$channel" --profile minimal --target x86_64-unknown-linux-gnu
+
+      - name: Set the version
+        run: echo "VERSION=$(jq -r '.zen.tag + "-rf" + (.revision | tostring)' upstream.json)" >> "$GITHUB_ENV"
+
+      - name: Download Firefox and import the sources
+        working-directory: zen
+        run: |
+          npm ci
+          npm run surfer -- ci --brand release --display-version "$VERSION"
+          npm run download
+          npm run import
+
+      - name: Apply the LibreWolf patches
+        run: |
+          set +e
+          bash scripts/apply_firefox_patches.sh zen/engine 2>&1 | tee apply-report.txt
+          code=${PIPESTATUS[0]}
+          set -e
+          # 2 means that only optional patches were skipped
+          if [ "$code" -ne 0 ] && [ "$code" -ne 2 ]; then exit "$code"; fi
+          if grep -q '^skipped' apply-report.txt; then
+            echo "::warning::Some optional LibreWolf patches were skipped, see apply-report.txt"
+          fi
+
+      - name: Build the language packs
+        working-directory: zen
+        run: sh scripts/download-language-packs.sh
+
+      - name: Bootstrap
+        working-directory: zen/engine
+        run: ./mach --no-interactive bootstrap --application-choice browser
+
+      - name: Signing key
+        working-directory: zen
+        env:
+          ZEN_SIGNING_CERT_PEM_BASE64: ${{ secrets.ZEN_SIGNING_CERT_PEM_BASE64 }}
+          ZEN_SIGNING_PRIVATE_KEY_PEM_BASE64: ${{ secrets.ZEN_SIGNING_PRIVATE_KEY_PEM_BASE64 }}
+        run: |
+          if [ -f ../signing/public_key.der ] && [ -n "$ZEN_SIGNING_CERT_PEM_BASE64" ] && [ -n "$ZEN_SIGNING_PRIVATE_KEY_PEM_BASE64" ]; then
+            echo "SIGNED=true" >> "$GITHUB_ENV"
+          else
+            echo "::warning::No signing key is set up, so this build uses a throwaway key and cannot be published"
+            bash scripts/mar_sign.sh -g
+          fi
+
+      - name: Build
+        working-directory: zen
+        run: bash .github/workflows/src/release-build.sh
+
+      - name: Package
+        working-directory: zen
+        env:
+          ZEN_RELEASE: "1"
+        run: npm run package
+
+      - name: Sign the update
+        working-directory: zen
+        env:
+          SIGNMAR: ${{ github.workspace }}/zen/engine/obj-x86_64-pc-linux-gnu/dist/bin/signmar
+          ZEN_SIGNING_CERT_PEM_BASE64: ${{ secrets.ZEN_SIGNING_CERT_PEM_BASE64 }}
+          ZEN_SIGNING_PRIVATE_KEY_PEM_BASE64: ${{ secrets.ZEN_SIGNING_PRIVATE_KEY_PEM_BASE64 }}
+        run: |
+          set -euo pipefail
+          # The password only protects a throwaway NSS database on this runner
+          export ZEN_MAR_SIGNING_PASSWORD=$(openssl rand -hex 16)
+          if [ "${SIGNED:-}" != true ]; then
+            unset ZEN_SIGNING_CERT_PEM_BASE64 ZEN_SIGNING_PRIVATE_KEY_PEM_BASE64
+          fi
+
+          set -- dist/*.tar.xz
+          [ "$#" -eq 1 ]
+          mkdir -p ../out linux.mar linux_update_manifest_x86_64
+          mv "$1" ../out/rockfox.linux-x86_64.tar.xz
+          mv dist/output.mar linux.mar/linux.mar
+          cp -a dist/update/. linux_update_manifest_x86_64/
+
+          bash scripts/mar_sign.sh -s
+
+          mv linux.mar/linux.mar ../out/linux.mar
+          manifest=$(find linux_update_manifest_x86_64 -type f -name update.xml | sort | head -n 1)
+          cp "$manifest" ../out/update-linux-x86_64.xml
+
+      - name: Upload the build
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: rockfox-linux-x86_64
+          path: out/*
+          retention-days: 5
+
+      - name: Publish the release
+        if: ${{ inputs.publish && env.SIGNED == 'true' }}
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          {
+            echo "Rockfox $VERSION, based on Zen $(jq -r .zen.tag upstream.json), Firefox $(jq -r .firefox upstream.json) and LibreWolf $(jq -r .librewolf upstream.json)."
+            if grep -q '^skipped' apply-report.txt; then
+              echo
+              echo "Skipped LibreWolf patches:"
+              grep '^skipped' apply-report.txt
+            fi
+          } > notes.md
+          if gh release view "$VERSION" > /dev/null 2>&1; then
+            gh release upload "$VERSION" out/* --clobber
+          else
+            gh release create "$VERSION" --target "$GITHUB_SHA" --title "Rockfox $VERSION" --notes-file notes.md out/*
+          fi

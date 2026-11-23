@@ -1,0 +1,69 @@
+diff --git a/prefs/zen/mods.yaml b/prefs/zen/mods.yaml
+index bb29ab1..117dd4a 100644
+--- a/prefs/zen/mods.yaml
++++ b/prefs/zen/mods.yaml
+@@ -4,14 +4,3 @@
+ 
+ - name: zen.mods.updated-value-observer
+   value: false
+-
+-# === Mark: Site Injection ===
+-
+-- name: zen.injections.match-urls
+-  value: "https://zen-browser.app/*"
+-  locked: true
+-  condition: "defined(MOZILLA_OFFICIAL)"
+-
+-- name: zen.injections.match-urls
+-  value: "http://localhost/*"
+-  condition: "!defined(MOZILLA_OFFICIAL)"
+diff --git a/src/browser/components/preferences/zenMarketplace.inc.xhtml b/src/browser/components/preferences/zenMarketplace.inc.xhtml
+index 9fd9c2d..64700b1 100644
+--- a/src/browser/components/preferences/zenMarketplace.inc.xhtml
++++ b/src/browser/components/preferences/zenMarketplace.inc.xhtml
+@@ -18,7 +18,6 @@
+       </hbox>
+       <description class="description-deemphasized" data-l10n-id="zen-theme-marketplace-description" />
+       <hbox class="indent">
+-            <html:a id="zenThemeMarketplaceLink" href="https://zen-browser.app/mods/" target="_blank" data-l10n-id="zen-theme-marketplace-link" />
+             <button id="zenThemeMarketplaceImport" data-l10n-id="zen-theme-marketplace-import-button" />
+             <button id="zenThemeMarketplaceExport" data-l10n-id="zen-theme-marketplace-export-button" />
+             <button id="zenThemeMarketplaceCheckForUpdates" data-l10n-id="zen-theme-marketplace-check-for-updates-button" />
+diff --git a/src/zen/common/sys/ZenActorsManager.sys.mjs b/src/zen/common/sys/ZenActorsManager.sys.mjs
+index 731c383..2d24282 100644
+--- a/src/zen/common/sys/ZenActorsManager.sys.mjs
++++ b/src/zen/common/sys/ZenActorsManager.sys.mjs
+@@ -30,10 +30,7 @@ let JSWINDOWACTORS = {
+       },
+     },
+     safeForUntrustedWebProcess: true,
+-    matches: [
+-      ...Services.prefs.getStringPref("zen.injections.match-urls").split(","),
+-      "about:preferences",
+-    ],
++    matches: ["about:preferences"],
+   },
+   ZenGlance: {
+     parent: {
+diff --git a/src/zen/mods/ZenMods.mjs b/src/zen/mods/ZenMods.mjs
+index 0df9646..9d7a565 100644
+--- a/src/zen/mods/ZenMods.mjs
++++ b/src/zen/mods/ZenMods.mjs
+@@ -634,6 +634,8 @@ class nsZenMods extends nsZenPreloadedFeature {
+   }
+ 
+   async installMod(mod) {
++    // The remote mod store is disabled in Rockfox.
++    return;
+     try {
+       const modPath = PathUtils.join(this.modsRootPath, mod.id);
+       await IOUtils.makeDirectory(modPath, { ignoreExisting: true });
+@@ -679,6 +681,8 @@ class nsZenMods extends nsZenPreloadedFeature {
+   }
+ 
+   async requestMod(modId) {
++    // The remote mod store is disabled in Rockfox.
++    return null;
+     const url = this.#composeModApiUrl(modId);
+ 
+     console.warn(`[ZenMods]: Fetching mod ${modId} info from ${url}`);

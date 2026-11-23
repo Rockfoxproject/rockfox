@@ -1,0 +1,24 @@
+diff --git a/prefs/zen/media.yaml b/prefs/zen/media.yaml
+index 48f7425..f2207c0 100644
+--- a/prefs/zen/media.yaml
++++ b/prefs/zen/media.yaml
+@@ -3,4 +3,4 @@
+ # file, You can obtain one at http://mozilla.org/MPL/2.0/.
+ 
+ - name: media.eme.enabled
+-  value: true
++  value: false
+diff --git a/prefs/zen/sync.yaml b/prefs/zen/sync.yaml
+index 3eb3aaa..d30d259 100644
+--- a/prefs/zen/sync.yaml
++++ b/prefs/zen/sync.yaml
+@@ -3,8 +3,7 @@
+ # file, You can obtain one at http://mozilla.org/MPL/2.0/.
+ 
+ - name: services.sync.engine.spaces
+-  value: "@cond"
+-  condition: "@IS_TWILIGHT@"
++  value: true
+ 
+ - name: zen.spaces-sync.debug
+   value: false

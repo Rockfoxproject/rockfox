@@ -1,0 +1,50 @@
+name: Track upstream
+
+on:
+  schedule:
+    - cron: "23 */6 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  track:
+    runs-on: ubuntu-24.04
+    permissions:
+      actions: write
+      contents: write
+      issues: write
+    env:
+      GH_TOKEN: ${{ github.token }}
+      ROCKFOX_REPO: ${{ github.repository }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+
+      - name: Look for new releases
+        id: track
+        run: python3 scripts/track_upstream.py
+
+      - name: Check that the patches still apply
+        id: check
+        if: steps.track.outputs.changed == 'true'
+        run: bash scripts/prepare.sh
+
+      - name: Commit and start a build
+        if: steps.track.outputs.changed == 'true'
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add upstream.json vendor patches/firefox
+          git commit -m "Update upstream: $(jq -r '"Zen " + .zen.tag + ", LibreWolf " + .librewolf' upstream.json)"
+          git push
+          gh workflow run build.yml -f publish=true
+
+      - name: Report patches that no longer apply
+        if: always() && steps.check.outcome == 'failure'
+        run: |
+          title="Rockfox patches do not apply to Zen $(jq -r .zen.tag upstream.json)"
+          if [ -z "$(gh issue list --state open --search "\"$title\" in:title" --json number --jq '.[].number')" ]; then
+            gh issue create --title "$title" --body "scripts/prepare.sh failed on the new upstream versions: $GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID"
+          fi

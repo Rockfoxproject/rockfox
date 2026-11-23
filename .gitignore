@@ -1,0 +1,4 @@
+/zen/
+/dist/
+/signing/private*
+*.pem

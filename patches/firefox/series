@@ -1,0 +1,7 @@
+# name<SPACE>required|optional. Taken from LibreWolf 160.0-1; optional ones are skipped when they no longer apply.
+eme-enable.patch optional
+clear-alt-svc.patch optional
+disable-data-reporting-at-compile-time.patch optional
+remove-pingsender.patch optional
+rs-blocker.patch optional
+remove-openai.patch optional

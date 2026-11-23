@@ -1,0 +1,56 @@
+# This Source Code Form is subject to the terms of the Mozilla Public
+# License, v. 2.0. If a copy of the MPL was not distributed with this
+# file, You can obtain one at http://mozilla.org/MPL/2.0/.
+
+# Where Rockfox differs from LibreWolf's defaults, for daily use.
+
+# Lighter fingerprinting protection. Full resistFingerprinting forces the light
+# theme, UTC time and a fixed window size, and breaks many web apps.
+- name: privacy.resistFingerprinting
+  value: false
+
+- name: privacy.fingerprintingProtection
+  value: true
+
+- name: webgl.disabled
+  value: false
+
+# The native Fire button: one click, then confirm, to wipe all browsing data.
+- name: browser.fireButton.enabled
+  value: true
+
+# Keep tabs, logins and sessions between restarts. "Delete all data" is the
+# one-click way to wipe everything.
+- name: privacy.sanitize.sanitizeOnShutdown
+  value: false
+
+- name: signon.rememberSignons
+  value: true
+
+# Sync through Mozilla's servers, for Spaces only.
+- name: identity.fxaccounts.enabled
+  value: true
+
+- name: services.sync.engine.addons
+  value: false
+
+- name: services.sync.engine.addresses
+  value: false
+
+- name: services.sync.engine.bookmarks
+  value: false
+
+- name: services.sync.engine.creditcards
+  value: false
+
+- name: services.sync.engine.history
+  value: false
+
+- name: services.sync.engine.passwords
+  value: false
+
+- name: services.sync.engine.prefs
+  value: false
+
+- name: services.sync.engine.tabs
+  value: false

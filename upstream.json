@@ -1,0 +1,6 @@
+{
+  "zen": { "repo": "zen-browser/desktop", "tag": "1.24.3b" },
+  "firefox": "160.0.1",
+  "librewolf": "160.0-1",
+  "revision": 1
+}

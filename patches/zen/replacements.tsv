@@ -1,0 +1,10 @@
+# Identity strings in the Zen tree. file<TAB>old<TAB>new; @REPO@ and @UPDATE_URL@ are filled in by prepare.sh.
+configs/common/mozconfig	--with-app-basename=Zen	--with-app-basename=Rockfox
+configs/common/mozconfig	export MOZ_APP_BASENAME=Zen	export MOZ_APP_BASENAME=Rockfox
+configs/common/mozconfig	--with-distribution-id=app.zen-browser	--with-distribution-id=app.rockfox
+configs/common/mozconfig	export MOZ_SOURCE_REPO=https://github.com/zen-browser/desktop	export MOZ_SOURCE_REPO=https://github.com/@REPO@
+src/toolkit/moz-configure.patch	default="app.zen-browser"	default="app.rockfox"
+src/build/moz-build.patch	updates.zen-browser.app	@UPDATE_URL@
+src/docshell/base/nsAboutRedirector-cpp.patch	https://zen-browser.app/about/	https://github.com/@REPO@
+src/zen/about/zen-about.inc.xhtml	https://github.com/zen-browser/desktop/issues	https://github.com/@REPO@/issues
+src/zen/about/zen-about.inc.xhtml	https://github.com/zen-browser/desktop	https://github.com/@REPO@

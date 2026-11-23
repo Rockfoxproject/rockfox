@@ -1,0 +1,41 @@
+diff --git a/prefs/zen/share.yaml b/prefs/zen/share.yaml
+index a9853c5..6e04fd6 100644
+--- a/prefs/zen/share.yaml
++++ b/prefs/zen/share.yaml
+@@ -3,7 +3,7 @@
+ # file, You can obtain one at http://mozilla.org/MPL/2.0/.
+ 
+ - name: zen.share.base-url
+-  value: "https://share.zen-browser.app"
++  value: ""
+ 
+ - name: zen.share.secret-key
+   value: ""
+diff --git a/src/zen/boosts/ZenBoostsEditor.mjs b/src/zen/boosts/ZenBoostsEditor.mjs
+index 9dd44ee..1d2310e 100644
+--- a/src/zen/boosts/ZenBoostsEditor.mjs
++++ b/src/zen/boosts/ZenBoostsEditor.mjs
+@@ -124,8 +124,7 @@ export class nsZenBoostEditor {
+     this.doc
+       .getElementById("zen-boost-code")
+       .addEventListener("click", this.onCodeButtonPressed.bind(this));
+-    const shareButton = this.doc.getElementById("zen-boost-share");
+-    shareButton.addEventListener("click", this.onShareBoostPressed.bind(this));
++    this.doc.getElementById("zen-boost-share").remove();
+     this.doc
+       .getElementById("zen-boost-back")
+       .addEventListener("click", this.onCodeBackButtonPressed.bind(this));
+diff --git a/src/zen/share/ZenShareManager.mjs b/src/zen/share/ZenShareManager.mjs
+index 8162009..99de71c 100644
+--- a/src/zen/share/ZenShareManager.mjs
++++ b/src/zen/share/ZenShareManager.mjs
+@@ -46,7 +46,8 @@ class nsZenShareManager extends nsZenDOMOperatedFeature {
+   }
+ 
+   get enabled() {
+-    return !gZenWorkspaces.privateWindowOrDisabled;
++    // Sharing is disabled in Rockfox.
++    return false;
+   }
+ 
+   // Mark: sharing

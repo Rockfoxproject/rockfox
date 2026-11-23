@@ -1,0 +1,88 @@
+diff --git a/src/zen/about/zen-about.inc.xhtml b/src/zen/about/zen-about.inc.xhtml
+index e1180a6..c396f77 100644
+--- a/src/zen/about/zen-about.inc.xhtml
++++ b/src/zen/about/zen-about.inc.xhtml
+@@ -52,13 +52,11 @@
+       <html:div id="zen-about-link-group">
+         <html:nav id="zen-about-links" class="zen-about-muted">
+           <html:a id="zen-about-release-notes" href="" data-l10n-id="zen-about-release-notes"/>
+-          <html:a id="zen-about-donate" href="https://www.zen-browser.app/donate" data-l10n-id="zen-about-donate"/>
+           <html:a id="zen-about-issues" href="https://github.com/zen-browser/desktop/issues" data-l10n-id="zen-about-report-issue"/>
+         </html:nav>
+         <html:nav id="zen-about-legal" class="zen-about-muted">
+           <html:a href="about:license" data-l10n-id="zen-about-license"/>
+           <html:a href="about:rights" data-l10n-id="zen-about-rights"/>
+-          <html:a href="https://www.zen-browser.app/privacy-policy/" data-l10n-id="zen-about-privacy"/>
+         </html:nav>
+       </html:div>
+     </html:footer>
+diff --git a/src/zen/common/modules/ZenUpdates.mjs b/src/zen/common/modules/ZenUpdates.mjs
+index 94599bd..5555bf0 100644
+--- a/src/zen/common/modules/ZenUpdates.mjs
++++ b/src/zen/common/modules/ZenUpdates.mjs
+@@ -36,11 +36,6 @@ export default function checkForZenUpdates() {
+         special: true,
+         icon: "chrome://browser/skin/zen-icons/sparkles.svg",
+       },
+-      {
+-        url: "https://www.zen-browser.app/donate",
+-        l10nId: "zen-sidebar-notification-donate",
+-        icon: "chrome://browser/skin/zen-icons/heart-circle-fill.svg",
+-      },
+       {
+         action: () => {
+           Services.obs.notifyObservers(window, "restart-in-safe-mode");
+diff --git a/src/zen/library/ZenLibrary.mjs b/src/zen/library/ZenLibrary.mjs
+index d4607f7..03bed0d 100644
+--- a/src/zen/library/ZenLibrary.mjs
++++ b/src/zen/library/ZenLibrary.mjs
+@@ -1042,14 +1042,6 @@ export class ZenLibrary extends MozLitElement {
+         id: "zen-library-customize-button",
+         command: () => this.#toggleCustomizing(),
+       },
+-      {
+-        image: "chrome://browser/skin/zen-icons/heart-circle-fill.svg",
+-        l10nId: "library-footer-donate-button",
+-        command: () => {
+-          window.openTrustedLinkIn("https://www.zen-browser.app/donate", "tab");
+-          ZenLibrary.animateProgress(0);
+-        },
+-      },
+     ];
+ 
+     for (const { image, l10nId, id, command } of buttons) {
+diff --git a/src/zen/settings/ZenSettingsWindow.mjs b/src/zen/settings/ZenSettingsWindow.mjs
+index 77fda0d..50daa61 100644
+--- a/src/zen/settings/ZenSettingsWindow.mjs
++++ b/src/zen/settings/ZenSettingsWindow.mjs
+@@ -19,7 +19,6 @@ ChromeUtils.defineESModuleGetters(lazy, {
+ 
+ const kDefaultPane = "general";
+ const kSchemePref = "zen.view.window.scheme";
+-const kDonateURL = "https://www.zen-browser.app/donate";
+ const kSubDialogStyleSheets = [
+   "chrome://browser/skin/preferences/dialog.css",
+   "chrome://browser/skin/preferences/preferences.css",
+@@ -374,7 +373,6 @@ class nsZenSettingsWindow {
+       "open-mods": () => leaveFor("paneZenMarketplace"),
+       "open-more-settings": () => leaveFor("paneGeneral"),
+       "open-about": () => window.openAboutDialog(),
+-      "open-donate": () => window.openTrustedLinkIn(kDonateURL, "tab"),
+       "open-privacy-settings": () => window.openPreferences("panePrivacy"),
+       "open-sync-settings": () => window.openPreferences("paneSync"),
+       "clear-data": () => lazy.Sanitizer.showUI(window),
+diff --git a/src/zen/settings/sidebar.inc.xhtml b/src/zen/settings/sidebar.inc.xhtml
+index 85653b4..52e1367 100644
+--- a/src/zen/settings/sidebar.inc.xhtml
++++ b/src/zen/settings/sidebar.inc.xhtml
+@@ -58,10 +58,6 @@
+           <html:img src="chrome://browser/skin/zen-icons/menu.svg" alt=""/>
+           <html:span data-l10n-id="zen-settings-window-link-more"/>
+         </html:button>
+-        <html:button class="zen-settings-category" data-action="open-donate">
+-          <html:img src="chrome://browser/skin/zen-icons/heart.svg" alt=""/>
+-          <html:span data-l10n-id="zen-settings-window-link-donate"/>
+-        </html:button>
+         <html:button class="zen-settings-category" data-action="open-about">
+           <html:img src="chrome://browser/skin/zen-icons/info.svg" alt=""/>
+           <html:span data-l10n-id="zen-settings-window-link-about"/>
