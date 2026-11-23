@@ -1,0 +1,20 @@
+diff --git a/scripts/mar_sign.sh b/scripts/mar_sign.sh
+index d134431..4933c49 100644
+--- a/scripts/mar_sign.sh
++++ b/scripts/mar_sign.sh
+@@ -17,13 +17,12 @@ generate_certs() {
+   openssl genrsa -out private_key.pem 4096
+ 
+   # 2. Generate self-signed certificate (required for PKCS#12 bundling)
+-  # RFC 5280 "no well-defined expiration" sentinel: 99991231235959Z
++  # -not_before and -not_after need OpenSSL 3.4, so use -days
+   openssl req -new -x509 \
+       -key private_key.pem \
+       -out cert.pem \
+       -subj "/CN=MAR Signing" \
+-      -not_before 20000101000000Z \
+-      -not_after  99991231235959Z
++      -days 36500
+ 
+   # 3. Export certificate as DER (for embedding in updater)
+   openssl x509 -in cert.pem -outform DER -out public_key.der
