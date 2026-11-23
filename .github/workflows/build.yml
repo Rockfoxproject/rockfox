@@ -101,7 +101,14 @@ jobs:
           ZEN_SIGNING_CERT_PEM_BASE64: ${{ secrets.ZEN_SIGNING_CERT_PEM_BASE64 }}
           ZEN_SIGNING_PRIVATE_KEY_PEM_BASE64: ${{ secrets.ZEN_SIGNING_PRIVATE_KEY_PEM_BASE64 }}
         run: |
+          set -euo pipefail
           if [ -f ../signing/public_key.der ] && [ -n "$ZEN_SIGNING_CERT_PEM_BASE64" ] && [ -n "$ZEN_SIGNING_PRIVATE_KEY_PEM_BASE64" ]; then
+            # Fail here, not after the build, when the secrets are not the key behind signing/public_key.der
+            cmp <(base64 -d <<< "$ZEN_SIGNING_CERT_PEM_BASE64" | openssl x509 -outform DER) ../signing/public_key.der ||
+              { echo "::error::The certificate secret does not match signing/public_key.der"; exit 1; }
+            cmp <(base64 -d <<< "$ZEN_SIGNING_CERT_PEM_BASE64" | openssl x509 -pubkey -noout) \
+                <(base64 -d <<< "$ZEN_SIGNING_PRIVATE_KEY_PEM_BASE64" | openssl pkey -pubout) ||
+              { echo "::error::The private key secret does not belong to the certificate secret"; exit 1; }
             echo "SIGNED=true" >> "$GITHUB_ENV"
           else
             echo "::warning::No signing key is set up, so this build uses a throwaway key and cannot be published"
@@ -124,6 +131,35 @@ jobs:
           ZEN_RELEASE: "1"
         run: npm run package
 
+      - name: Collect the build
+        working-directory: zen
+        run: |
+          set -euo pipefail
+          set -- dist/*.tar.xz
+          [ "$#" -eq 1 ]
+          mkdir -p ../out ../unsigned linux.mar linux_update_manifest_x86_64
+          mv "$1" ../out/rockfox.linux-x86_64.tar.xz
+          cp dist/output.mar ../unsigned/linux.mar
+          cp -a dist/update ../unsigned/update
+          mv dist/output.mar linux.mar/linux.mar
+          cp -a dist/update/. linux_update_manifest_x86_64/
+
+      - name: Upload the browser
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: rockfox-linux-x86_64
+          path: out/rockfox.linux-x86_64.tar.xz
+          compression-level: 0
+          retention-days: 14
+
+      - name: Upload the unsigned update
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: rockfox-update-unsigned
+          path: unsigned
+          compression-level: 0
+          retention-days: 5
+
       - name: Sign the update
         working-directory: zen
         env:
@@ -132,31 +168,24 @@ jobs:
           ZEN_SIGNING_PRIVATE_KEY_PEM_BASE64: ${{ secrets.ZEN_SIGNING_PRIVATE_KEY_PEM_BASE64 }}
         run: |
           set -euo pipefail
-          # The password only protects a throwaway NSS database on this runner
-          export ZEN_MAR_SIGNING_PASSWORD=$(openssl rand -hex 16)
           if [ "${SIGNED:-}" != true ]; then
             unset ZEN_SIGNING_CERT_PEM_BASE64 ZEN_SIGNING_PRIVATE_KEY_PEM_BASE64
           fi
-
-          set -- dist/*.tar.xz
-          [ "$#" -eq 1 ]
-          mkdir -p ../out linux.mar linux_update_manifest_x86_64
-          mv "$1" ../out/rockfox.linux-x86_64.tar.xz
-          mv dist/output.mar linux.mar/linux.mar
-          cp -a dist/update/. linux_update_manifest_x86_64/
-
+          # signmar reads a password from stdin when the NSS database has one, so no password is set
           bash scripts/mar_sign.sh -s
-
           mv linux.mar/linux.mar ../out/linux.mar
-          manifest=$(find linux_update_manifest_x86_64 -type f -name update.xml | sort | head -n 1)
+          manifest=$(find linux_update_manifest_x86_64 -type f -name update.xml | sort | sed -n 1p)
           cp "$manifest" ../out/update-linux-x86_64.xml
 
-      - name: Upload the build
+      - name: Upload the signed update
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         with:
-          name: rockfox-linux-x86_64
-          path: out/*
-          retention-days: 5
+          name: rockfox-update-linux-x86_64
+          path: |
+            out/linux.mar
+            out/update-linux-x86_64.xml
+          compression-level: 0
+          retention-days: 14
 
       - name: Publish the release
         if: ${{ inputs.publish && env.SIGNED == 'true' }}
