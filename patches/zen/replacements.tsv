@@ -8,3 +8,6 @@ src/build/moz-build.patch	updates.zen-browser.app	@UPDATE_URL@
 src/docshell/base/nsAboutRedirector-cpp.patch	https://zen-browser.app/about/	https://github.com/@REPO@
 src/zen/about/zen-about.inc.xhtml	https://github.com/zen-browser/desktop/issues	https://github.com/@REPO@/issues
 src/zen/about/zen-about.inc.xhtml	https://github.com/zen-browser/desktop	https://github.com/@REPO@
+src/toolkit/moz-configure.patch	default="zen"	default="rockfox"
+src/toolkit/moz-configure.patch	return "zen"	return "rockfox"
+src/toolkit/moz-configure.patch	default="Zen Team"	default="Rockfox"
