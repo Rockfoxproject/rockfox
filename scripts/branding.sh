@@ -1,10 +1,10 @@
 #!/usr/bin/env bash
 # Regenerate the Linux branding images from one source logo (SVG, or a square PNG).
-# usage: branding.sh [logo]   (default: branding/logo.svg)
+# usage: branding.sh [logo]   (default: branding/logo.png)
 set -euo pipefail
 
 root=$(cd "$(dirname "$0")/.." && pwd)
-src=${1:-$root/branding/logo.svg}
+src=${1:-$root/branding/logo.png}
 out=$root/overlay/configs/branding/release
 mkdir -p "$out/content"
 

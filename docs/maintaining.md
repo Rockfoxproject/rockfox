@@ -42,7 +42,7 @@ The build saves its results as three artifacts:
 The browser is saved before the signing step, so a signing failure does not lose it. To download it:
 
 ```
-gh run download RUN_ID -R Rockfoxproject/rockfox -n rockfox-linux-x86_64 -D ~/rockfox-build
+gh run download RUN_ID -R Rockfoxproject/rockfoxbrowser -n rockfox-linux-x86_64 -D ~/rockfox-build
 ```
 
 `gh run list` shows the run ID. Publishing only works when the signing secrets are set, and the release tag is the version string, for example `1.24.3b-rf1`.
@@ -54,7 +54,7 @@ gh run download RUN_ID -R Rockfoxproject/rockfox -n rockfox-linux-x86_64 -D ~/ro
 - The NSS database that holds the key during signing has an empty password on purpose. `signmar` asks for a password on standard input when the database has one, and a workflow step has nobody to type it.
 - Without the secrets, a build makes a throwaway key. Such a build works for testing, cannot be published and cannot update.
 
-To create a key, run `ROCKFOX_REPO=Rockfoxproject/rockfox ./scripts/gen_signing_key.sh` on a Linux machine with `git`, `jq`, `python3` and `openssl`. Commit `signing/public_key.der`, then add the two files in `zen/build/signing/env/` as secrets with the same names, for example `gh secret set ZEN_SIGNING_CERT_PEM_BASE64 < zen/build/signing/env/ZEN_SIGNING_CERT_PEM_BASE64`.
+To create a key, run `ROCKFOX_REPO=Rockfoxproject/rockfoxbrowser ./scripts/gen_signing_key.sh` on a Linux machine with `git`, `jq`, `python3` and `openssl`. Commit `signing/public_key.der`, then add the two files in `zen/build/signing/env/` as secrets with the same names, for example `gh secret set ZEN_SIGNING_CERT_PEM_BASE64 < zen/build/signing/env/ZEN_SIGNING_CERT_PEM_BASE64`.
 
 Keep a copy of `zen/build/signing/private_key.pem` and `cert.pem` outside your computer and never commit them. If the private key is lost, installed copies can no longer be updated automatically. There is no key rotation procedure yet.
 
@@ -65,21 +65,21 @@ Keep a copy of `zen/build/signing/private_key.pem` and `cert.pem` outside your c
 It is disabled for now. Enable it once a release has been tested:
 
 ```
-gh workflow enable track-upstream.yml -R Rockfoxproject/rockfox
+gh workflow enable track-upstream.yml -R Rockfoxproject/rockfoxbrowser
 ```
 
 GitHub pauses scheduled workflows after 60 days without activity in the repository. Enable it again from the Actions tab if that happens.
 
 ## Renaming the repository
 
-The repository name is built into the browser: the update address and the links in the about page. Rename before the first release and rebuild, and do not create another repository with the old name, or the old links stop redirecting.
+The repository name is built into the browser: the update address and the links in the about page. The repository was renamed from `rockfox` to `rockfoxbrowser` before the first release. Do not create another repository called `rockfox` in the same account, or the old links stop redirecting. A rename needs a new build, because the name is compiled in.
 
 ## Building locally
 
 ```
 git config --global user.name "Your Name"
 git config --global user.email "you@example.com"
-ROCKFOX_REPO=Rockfoxproject/rockfox ./scripts/prepare.sh
+ROCKFOX_REPO=Rockfoxproject/rockfoxbrowser ./scripts/prepare.sh
 cd zen
 npm ci
 npm run surfer -- ci --brand release --display-version 1.24.3b-rf1
@@ -95,7 +95,7 @@ The git identity is needed because the download step makes a commit. `.github/wo
 
 ## Logo
 
-Replace `branding/logo.svg`, or pass a square PNG, and run `scripts/branding.sh`. It needs `rsvg-convert` or ImageMagick and regenerates the files in `overlay/configs/branding/release/`.
+Replace `branding/logo.png` with a square PNG, at least 1024 pixels wide and with a transparent background, and run `scripts/branding.sh`. It needs ImageMagick and regenerates the files in `overlay/configs/branding/release/`. An SVG can be passed as an argument instead, and then it needs `rsvg-convert`.
 
 ## Known gaps
 

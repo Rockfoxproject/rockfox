@@ -1,6 +1,10 @@
-# Rockfox
+<p align="center">
+  <img src="branding/logo.png" width="140" alt="Rockfox logo">
+</p>
 
-**LibreWolf's privacy with Zen's design.**
+<h1 align="center">Rockfox</h1>
+
+<p align="center"><b>LibreWolf's privacy with Zen's design.</b></p>
 
 Rockfox is a Linux browser that puts LibreWolf's privacy hardening inside Zen Browser's beautiful, minimal interface. Vertical tabs, Spaces and split view on the outside, a hardened, telemetry-free build on the inside.
 
@@ -35,7 +39,7 @@ Rockfox is a Linux browser that puts LibreWolf's privacy hardening inside Zen Br
 
 ## Install
 
-There is no release yet. When there is one, download the `.tar.xz` from [Releases](https://github.com/Rockfoxproject/rockfox/releases), extract it and run `rockfox`. A Flatpak is planned.
+There is no release yet. When there is one, download the `.tar.xz` from [Releases](https://github.com/Rockfoxproject/rockfoxbrowser/releases), extract it and run `rockfox`. A Flatpak is planned.
 
 ## Good to know
 
@@ -49,7 +53,7 @@ There is no release yet. When there is one, download the `.tar.xz` from [Release
 
 - [`docs/maintaining.md`](docs/maintaining.md) explains how a build works and how to run your own.
 - Report a security problem as described in [`SECURITY.md`](SECURITY.md), not in a public issue.
-- Other bugs and questions go in the [issues](https://github.com/Rockfoxproject/rockfox/issues).
+- Other bugs and questions go in the [issues](https://github.com/Rockfoxproject/rockfoxbrowser/issues).
 
 ## Credits and licence
 
