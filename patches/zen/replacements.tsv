@@ -11,3 +11,5 @@ src/zen/about/zen-about.inc.xhtml	https://github.com/zen-browser/desktop	https:/
 src/toolkit/moz-configure.patch	default="zen"	default="rockfox"
 src/toolkit/moz-configure.patch	return "zen"	return "rockfox"
 src/toolkit/moz-configure.patch	default="Zen Team"	default="Rockfox"
+src/zen/welcome/ZenWelcome.mjs	return _adBlocker === null;	return true;
+src/zen/welcome/ZenWelcome.mjs	fetchAdBlocker();	fetchAdBlocker().then(addon => addon && installAddons([addon]));
